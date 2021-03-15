@@ -188,6 +188,11 @@ def wrapper_defs(func_name, func_type, args):
         wrap += "\t\t" + "};\n"
         mrsh_args[5:] = ["(uintptr_t) &more"]
 
+    # Trace changes
+    wrap += "#if defined (CONFIG_OBJECT_TRACING) && defined (CONFIG_SYSCALL_TRACING)\n"     # New trace code
+    wrap += "\t\t" + "arch_syscall_invoke0(K_SYSCALL_SYS_TRACING_SYSCALL_ENTER);\n"         # New trace code
+    wrap += "#endif\n"                                                                      # New trace code
+
     syscall_id = "K_SYSCALL_" + func_name.upper()
     invoke = ("arch_syscall_invoke%d(%s)"
               % (len(mrsh_args),
@@ -195,12 +200,23 @@ def wrapper_defs(func_name, func_type, args):
 
     if ret64:
         wrap += "\t\t" + "(void)%s;\n" % invoke
+        wrap += "#if defined (CONFIG_OBJECT_TRACING) && defined (CONFIG_SYSCALL_TRACING)\n" # New trace code
+        wrap += "\t\t" + "arch_syscall_invoke0(K_SYSCALL_SYS_TRACING_SYSCALL_EXIT);\n"      # New trace code
+        wrap += "#endif\n"                                                                  # New trace code
         wrap += "\t\t" + "return (%s)ret64;\n" % func_type
     elif func_type == "void":
         wrap += "\t\t" + "%s;\n" % invoke
+        wrap += "#if defined (CONFIG_OBJECT_TRACING) && defined (CONFIG_SYSCALL_TRACING)\n" # New trace code
+        wrap += "\t\t" + "arch_syscall_invoke0(K_SYSCALL_SYS_TRACING_SYSCALL_EXIT);\n"      # New trace code
+        wrap += "#endif\n"                                                                  # New trace code
         wrap += "\t\t" + "return;\n"
     else:
-        wrap += "\t\t" + "return (%s) %s;\n" % (func_type, invoke)
+        wrap += "\t\t" + "%s ret = (%s) %s;\n" % (func_type, func_type, invoke)             # New trace code
+        wrap += "#if defined (CONFIG_OBJECT_TRACING) && defined (CONFIG_SYSCALL_TRACING)\n" # New trace code
+        wrap += "\t\t" + "arch_syscall_invoke0(K_SYSCALL_SYS_TRACING_SYSCALL_EXIT);\n"      # New trace code
+        wrap += "#endif\n"                                                                  # New trace code
+        wrap += "\t\t" + "return (%s) ret;\n" % (func_type)                                 # New trace code
+        #wrap += "\t\t" + "return (%s) %s;\n" % (func_type, invoke)                         # Commented for trace changes
 
     wrap += "\t" + "}\n"
     wrap += "#endif\n"
@@ -383,6 +399,8 @@ def main():
             mrsh_includes[syscall] = "#include <syscalls/%s>" % fn
 
     with open(args.syscall_dispatch, "w") as fp:
+        table_entries.append("[K_SYSCALL_SYS_TRACING_SYSCALL_ENTER] = handler_trace_syscall_enter")     # Trace extenion
+        table_entries.append("[K_SYSCALL_SYS_TRACING_SYSCALL_EXIT] = handler_trace_syscall_exit")       # Trace extenion
         table_entries.append("[K_SYSCALL_BAD] = handler_bad_syscall")
 
         weak_defines = "".join([weak_template % name
@@ -398,7 +416,9 @@ def main():
 
     # Listing header emitted to stdout
     ids.sort()
-    ids.extend(["K_SYSCALL_BAD", "K_SYSCALL_LIMIT"])
+    # Trace extension
+    ids.extend(["K_SYSCALL_SYS_TRACING_SYSCALL_ENTER", "K_SYSCALL_SYS_TRACING_SYSCALL_EXIT", "K_SYSCALL_BAD", "K_SYSCALL_LIMIT"])
+    #ids.extend(["K_SYSCALL_BAD", "K_SYSCALL_LIMIT"])
 
     ids_as_defines = ""
     for i, item in enumerate(ids):

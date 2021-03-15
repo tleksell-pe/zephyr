@@ -20,6 +20,11 @@
 #include <stdbool.h>
 #include <toolchain.h>
 
+/**
+ * @note	Extended tracing include
+ */
+#include "debug/object_tracing_common.h"
+
 #ifdef CONFIG_THREAD_RUNTIME_STATS_USE_TIMING_FUNCTIONS
 #include <timing/timing.h>
 #endif
@@ -1863,10 +1868,13 @@ __syscall void *k_queue_get(struct k_queue *queue, k_timeout_t timeout);
  *
  * @return true if data item was removed
  */
-static inline bool k_queue_remove(struct k_queue *queue, void *data)
+/* [TZ-TRACE]: Changed into declaration with definition in queue.c to facilitate tracing. */
+extern bool k_queue_remove(struct k_queue *queue, void *data);
+/*static inline bool k_queue_remove(struct k_queue *queue, void *data)
 {
 	return sys_sflist_find_and_remove(&queue->data_q, (sys_sfnode_t *)data);
 }
+*/
 
 /**
  * @brief Append an element to a queue only if it's not present already.
@@ -1882,7 +1890,9 @@ static inline bool k_queue_remove(struct k_queue *queue, void *data)
  *
  * @return true if data item was added, false if not
  */
-static inline bool k_queue_unique_append(struct k_queue *queue, void *data)
+/* [TZ-TRACE]: Changed into declaration with definition in queue.c to facilitate tracing. */
+bool k_queue_unique_append(struct k_queue *queue, void *data);
+/*static inline bool k_queue_unique_append(struct k_queue *queue, void *data)
 {
 	sys_sfnode_t *test;
 
@@ -1895,6 +1905,7 @@ static inline bool k_queue_unique_append(struct k_queue *queue, void *data)
 	k_queue_append(queue, data);
 	return true;
 }
+*/
 
 /**
  * @brief Query a queue to see if it has data available.
@@ -1927,10 +1938,12 @@ static inline int z_impl_k_queue_is_empty(struct k_queue *queue)
  */
 __syscall void *k_queue_peek_head(struct k_queue *queue);
 
-static inline void *z_impl_k_queue_peek_head(struct k_queue *queue)
+/* [TZ-TRACE]: Defined in queue.c to facilitate tracing. */
+/*static inline void *z_impl_k_queue_peek_head(struct k_queue *queue)
 {
 	return z_queue_node_peek(sys_sflist_peek_head(&queue->data_q), false);
 }
+*/
 
 /**
  * @brief Peek element at the tail of queue.
@@ -1943,10 +1956,12 @@ static inline void *z_impl_k_queue_peek_head(struct k_queue *queue)
  */
 __syscall void *k_queue_peek_tail(struct k_queue *queue);
 
-static inline void *z_impl_k_queue_peek_tail(struct k_queue *queue)
+/* [TZ-TRACE]: Defined in queue.c to facilitate tracing. */
+/*static inline void *z_impl_k_queue_peek_tail(struct k_queue *queue)
 {
 	return z_queue_node_peek(sys_sflist_peek_tail(&queue->data_q), false);
 }
+*/
 
 /**
  * @brief Statically define and initialize a queue.
@@ -4978,11 +4993,16 @@ void *k_heap_aligned_alloc(struct k_heap *h, size_t align, size_t bytes,
  * @param timeout How long to wait, or K_NO_WAIT
  * @return A pointer to valid heap memory, or NULL
  */
+#ifndef CONFIG_OBJECT_TRACING
 static inline void *k_heap_alloc(struct k_heap *h, size_t bytes,
 				 k_timeout_t timeout)
 {
 	return k_heap_aligned_alloc(h, sizeof(void *), bytes, timeout);
 }
+#else
+void *k_heap_alloc(struct k_heap *h, size_t bytes,
+				 k_timeout_t timeout);
+#endif
 
 /**
  * @brief Free memory allocated by k_heap_alloc()
@@ -5055,10 +5075,13 @@ extern void *k_aligned_alloc(size_t align, size_t size);
  *
  * @return Address of the allocated memory if successful; otherwise NULL.
  */
-static inline void *k_malloc(size_t size)
+/* [TZ-TRACE]: Defined in mempool.c to facilitate tracing. */
+extern void *k_malloc(size_t size);
+/*static inline void *k_malloc(size_t size)
 {
 	return k_aligned_alloc(sizeof(void *), size);
 }
+*/
 
 /**
  * @brief Free memory allocated from heap.

@@ -871,6 +871,24 @@ SYS_INIT(app_shmem_bss_zero, PRE_KERNEL_1, CONFIG_KERNEL_INIT_PRIORITY_DEFAULT);
  * Default handlers if otherwise unimplemented
  */
 
+static uintptr_t handler_trace_syscall_enter(uintptr_t bad_id, uintptr_t arg2,
+				     uintptr_t arg3, uintptr_t arg4,
+				     uintptr_t arg5, uintptr_t arg6,
+				     void *ssf)
+{
+	sys_port_trace_syscall_enter();
+	return 0;
+}
+
+static uintptr_t handler_trace_syscall_exit(uintptr_t bad_id, uintptr_t arg2,
+				     uintptr_t arg3, uintptr_t arg4,
+				     uintptr_t arg5, uintptr_t arg6,
+				     void *ssf)
+{
+	sys_port_trace_syscall_exit();
+	return 0;
+}
+
 static uintptr_t handler_bad_syscall(uintptr_t bad_id, uintptr_t arg2,
 				     uintptr_t arg3, uintptr_t arg4,
 				     uintptr_t arg5, uintptr_t arg6,

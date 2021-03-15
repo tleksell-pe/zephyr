@@ -61,9 +61,17 @@ void k_thread_foreach(k_thread_user_cb_t user_cb, void *user_data)
 	 * k_thread_abort from user_cb.
 	 */
 	key = k_spin_lock(&z_thread_monitor_lock);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC_ENTER(k_thread, foreach);
+
 	for (thread = _kernel.threads; thread; thread = thread->next_thread) {
 		user_cb(thread, user_data);
 	}
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC_EXIT(k_thread, foreach);
+
 	k_spin_unlock(&z_thread_monitor_lock, key);
 #endif
 }
@@ -77,11 +85,19 @@ void k_thread_foreach_unlocked(k_thread_user_cb_t user_cb, void *user_data)
 	__ASSERT(user_cb != NULL, "user_cb can not be NULL");
 
 	key = k_spin_lock(&z_thread_monitor_lock);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC_ENTER(k_thread, foreach_unlocked);
+
 	for (thread = _kernel.threads; thread; thread = thread->next_thread) {
 		k_spin_unlock(&z_thread_monitor_lock, key);
 		user_cb(thread, user_data);
 		key = k_spin_lock(&z_thread_monitor_lock);
 	}
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC_EXIT(k_thread, foreach_unlocked);
+
 	k_spin_unlock(&z_thread_monitor_lock, key);
 #endif
 }
@@ -123,7 +139,13 @@ bool z_is_thread_essential(void)
 #ifdef CONFIG_SYS_CLOCK_EXISTS
 void z_impl_k_busy_wait(uint32_t usec_to_wait)
 {
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC_ENTER(k_thread, busy_wait, usec_to_wait);
+
 	if (usec_to_wait == 0) {
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_FUNC_EXIT(k_thread, busy_wait, usec_to_wait);
+
 		return;
 	}
 
@@ -148,6 +170,8 @@ void z_impl_k_busy_wait(uint32_t usec_to_wait)
 #else
 	arch_busy_wait(usec_to_wait);
 #endif /* CONFIG_ARCH_HAS_CUSTOM_BUSY_WAIT */
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC_EXIT(k_thread, busy_wait, usec_to_wait);
 }
 
 #ifdef CONFIG_USERSPACE
@@ -224,11 +248,19 @@ int z_impl_k_thread_name_set(struct k_thread *thread, const char *value)
 
 	strncpy(thread->name, value, CONFIG_THREAD_MAX_NAME_LEN);
 	thread->name[CONFIG_THREAD_MAX_NAME_LEN - 1] = '\0';
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC(k_thread, name_set, thread, 0);
+
 	sys_trace_thread_name_set(thread);
 	return 0;
 #else
 	ARG_UNUSED(thread);
 	ARG_UNUSED(value);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC(k_thread, name_set, thread, -ENOSYS);
+
 	return -ENOSYS;
 #endif /* CONFIG_THREAD_NAME */
 }
@@ -386,6 +418,9 @@ void z_check_stack_sentinel(void)
 #ifdef CONFIG_MULTITHREADING
 void z_impl_k_thread_start(struct k_thread *thread)
 {
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC(k_thread, start, thread);
+
 	z_sched_start(thread);
 }
 
@@ -625,6 +660,10 @@ char *z_setup_new_thread(struct k_thread *new_thread,
 	new_thread->base.prio_deadline = 0;
 #endif
 	new_thread->resource_pool = _current->resource_pool;
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC(k_thread, create, new_thread);
+
 	sys_trace_thread_create(new_thread);
 
 #ifdef CONFIG_THREAD_RUNTIME_STATS
@@ -809,6 +848,9 @@ void z_init_thread_base(struct _thread_base *thread_base, int priority,
 FUNC_NORETURN void k_thread_user_mode_enter(k_thread_entry_t entry,
 					    void *p1, void *p2, void *p3)
 {
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC(k_thread, user_mode_enter);
+
 	_current->base.user_options |= K_USER;
 	z_thread_essential_clear();
 #ifdef CONFIG_THREAD_MONITOR
@@ -1016,6 +1058,9 @@ static inline k_ticks_t z_vrfy_k_thread_timeout_expires_ticks(
 void z_thread_mark_switched_in(void)
 {
 #ifdef CONFIG_TRACING
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC(k_thread, switched_in);
+
 	sys_trace_thread_switched_in();
 #endif
 
@@ -1071,6 +1116,9 @@ void z_thread_mark_switched_out(void)
 #endif /* CONFIG_THREAD_RUNTIME_STATS */
 
 #ifdef CONFIG_TRACING
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC(k_thread, switched_out);
+
 	sys_trace_thread_switched_out();
 #endif
 }

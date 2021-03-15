@@ -134,6 +134,10 @@ void k_pipe_init(struct k_pipe *pipe, unsigned char *buffer, size_t size)
 	pipe->lock = (struct k_spinlock){};
 	z_waitq_init(&pipe->wait_q.writers);
 	z_waitq_init(&pipe->wait_q.readers);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_INIT(k_pipe, pipe);
+
 	SYS_TRACING_OBJ_INIT(k_pipe, pipe);
 	pipe->flags = 0;
 	z_object_init(pipe);
@@ -143,6 +147,9 @@ int z_impl_k_pipe_alloc_init(struct k_pipe *pipe, size_t size)
 {
 	void *buffer;
 	int ret;
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_pipe, alloc_init, pipe);
 
 	if (size != 0) {
 		buffer = z_thread_malloc(size);
@@ -157,6 +164,9 @@ int z_impl_k_pipe_alloc_init(struct k_pipe *pipe, size_t size)
 		k_pipe_init(pipe, NULL, 0);
 		ret = 0;
 	}
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_pipe, alloc_init, pipe, ret);
 
 	return ret;
 }
@@ -173,8 +183,14 @@ static inline int z_vrfy_k_pipe_alloc_init(struct k_pipe *pipe, size_t size)
 
 int k_pipe_cleanup(struct k_pipe *pipe)
 {
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_pipe, cleanup, pipe);
+
 	CHECKIF(z_waitq_head(&pipe->wait_q.readers) != NULL ||
 			z_waitq_head(&pipe->wait_q.writers) != NULL) {
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_pipe, cleanup, pipe, -EAGAIN);
+
 		return -EAGAIN;
 	}
 
@@ -183,6 +199,10 @@ int k_pipe_cleanup(struct k_pipe *pipe)
 		pipe->buffer = NULL;
 		pipe->flags &= ~K_PIPE_FLAG_ALLOC;
 	}
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_pipe, cleanup, pipe, 0);
+
 	return 0;
 }
 
@@ -438,7 +458,13 @@ int z_pipe_put_internal(struct k_pipe *pipe, struct k_pipe_async *async_desc,
 	ARG_UNUSED(async_desc);
 #endif
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_pipe, put, pipe, timeout);
+
 	CHECKIF((min_xfer > bytes_to_write) || bytes_written == NULL) {
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_pipe, put, pipe, timeout, -EINVAL);
+
 		return -EINVAL;
 	}
 
@@ -454,8 +480,15 @@ int z_pipe_put_internal(struct k_pipe *pipe, struct k_pipe_async *async_desc,
 				min_xfer, timeout)) {
 		k_spin_unlock(&pipe->lock, key);
 		*bytes_written = 0;
+
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_pipe, put, pipe, timeout, -EIO);
+
 		return -EIO;
 	}
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_BLOCKING(k_pipe, put, pipe, timeout);
 
 	z_sched_lock();
 	k_spin_unlock(&pipe->lock, key);
@@ -522,6 +555,10 @@ int z_pipe_put_internal(struct k_pipe *pipe, struct k_pipe_async *async_desc,
 		}
 #endif
 		k_sched_unlock();
+
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_pipe, put, pipe, timeout, 0);
+
 		return 0;
 	}
 
@@ -535,6 +572,10 @@ int z_pipe_put_internal(struct k_pipe *pipe, struct k_pipe_async *async_desc,
 		}
 #endif
 		k_sched_unlock();
+
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_pipe, put, pipe, timeout, 0);
+
 		return 0;
 	}
 
@@ -556,6 +597,10 @@ int z_pipe_put_internal(struct k_pipe *pipe, struct k_pipe_async *async_desc,
 		z_pend_thread((struct k_thread *) &async_desc->thread,
 			     &pipe->wait_q.writers, K_FOREVER);
 		z_reschedule(&pipe->lock, key2);
+
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_pipe, put, pipe, timeout, -EINVAL);
+
 		return 0;
 	}
 #endif
@@ -581,8 +626,14 @@ int z_pipe_put_internal(struct k_pipe *pipe, struct k_pipe_async *async_desc,
 
 	*bytes_written = bytes_to_write - pipe_desc.bytes_to_xfer;
 
-	return pipe_return_code(min_xfer, pipe_desc.bytes_to_xfer,
+	/* [TZ-TRACE]: New trace hook, separated return statement to facilitate tracing */
+	int ret = pipe_return_code(min_xfer, pipe_desc.bytes_to_xfer,
 				 bytes_to_write);
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_pipe, put, pipe, timeout, ret);
+	return ret;
+	/*return pipe_return_code(min_xfer, pipe_desc.bytes_to_xfer,
+	 *			 bytes_to_write);
+	 */
 }
 
 int z_impl_k_pipe_get(struct k_pipe *pipe, void *data, size_t bytes_to_read,
@@ -594,7 +645,13 @@ int z_impl_k_pipe_get(struct k_pipe *pipe, void *data, size_t bytes_to_read,
 	size_t         num_bytes_read = 0;
 	size_t         bytes_copied;
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_pipe, get, pipe, timeout);
+
 	CHECKIF((min_xfer > bytes_to_read) || bytes_read == NULL) {
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_pipe, get, pipe, timeout, -EINVAL);
+
 		return -EINVAL;
 	}
 
@@ -609,8 +666,15 @@ int z_impl_k_pipe_get(struct k_pipe *pipe, void *data, size_t bytes_to_read,
 				min_xfer, timeout)) {
 		k_spin_unlock(&pipe->lock, key);
 		*bytes_read = 0;
+
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_pipe, get, pipe, timeout, -EIO);
+
 		return -EIO;
 	}
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_BLOCKING(k_pipe, get, pipe, timeout);
 
 	z_sched_lock();
 	k_spin_unlock(&pipe->lock, key);
@@ -701,6 +765,9 @@ int z_impl_k_pipe_get(struct k_pipe *pipe, void *data, size_t bytes_to_read,
 
 		*bytes_read = num_bytes_read;
 
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_pipe, get, pipe, timeout, 0);
+
 		return 0;
 	}
 
@@ -710,6 +777,9 @@ int z_impl_k_pipe_get(struct k_pipe *pipe, void *data, size_t bytes_to_read,
 		k_sched_unlock();
 
 		*bytes_read = num_bytes_read;
+
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_pipe, get, pipe, timeout, 0);
 
 		return 0;
 	}
@@ -734,8 +804,14 @@ int z_impl_k_pipe_get(struct k_pipe *pipe, void *data, size_t bytes_to_read,
 
 	*bytes_read = bytes_to_read - pipe_desc.bytes_to_xfer;
 
-	return pipe_return_code(min_xfer, pipe_desc.bytes_to_xfer,
+	/* [TZ-TRACE]: New trace hook, separated return statement to facilitate tracing */
+	int ret = pipe_return_code(min_xfer, pipe_desc.bytes_to_xfer,
 				 bytes_to_read);
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_pipe, get, pipe, timeout, ret);
+	return ret;
+	/*return pipe_return_code(min_xfer, pipe_desc.bytes_to_xfer,
+	 *			 bytes_to_read);
+	 */
 }
 
 #ifdef CONFIG_USERSPACE
@@ -785,6 +861,9 @@ void k_pipe_block_put(struct k_pipe *pipe, struct k_mem_block *block,
 	struct k_pipe_async  *async_desc;
 	size_t                dummy_bytes_written;
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_pipe, block_put, pipe, sem);
+
 	/* For simplicity, always allocate an asynchronous descriptor */
 	pipe_async_alloc(&async_desc);
 
@@ -799,6 +878,9 @@ void k_pipe_block_put(struct k_pipe *pipe, struct k_mem_block *block,
 	(void) z_pipe_put_internal(pipe, async_desc, block->data,
 				    bytes_to_write, &dummy_bytes_written,
 				    bytes_to_write, K_FOREVER);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_pipe, block_put, pipe, sem);
 }
 #endif
 

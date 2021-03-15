@@ -47,7 +47,14 @@ void k_free(void *ptr)
 	if (ptr != NULL) {
 		heap_ref = ptr;
 		ptr = --heap_ref;
+
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_heap_sys, k_free, *heap_ref);
+
 		k_heap_free(*heap_ref, ptr);
+
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_heap_sys, k_free, *heap_ref);
 	}
 }
 
@@ -65,7 +72,29 @@ void *k_aligned_alloc(size_t align, size_t size)
 	__ASSERT((align & (align - 1)) == 0,
 		"align must be a power of 2");
 
-	return z_heap_aligned_alloc(_SYSTEM_HEAP, align, size);
+	/* [TZ-TRACE]: New trace hook, separated return statement to facilitate return tracing */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_heap_sys, k_aligned_alloc, _SYSTEM_HEAP);
+
+	void *ret = z_heap_aligned_alloc(_SYSTEM_HEAP, align, size);
+
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_heap_sys, k_aligned_alloc, _SYSTEM_HEAP, ret);
+
+	return ret;
+
+	/*return z_heap_aligned_alloc(_SYSTEM_HEAP, align, size);*/
+}
+
+void *k_malloc(size_t size)
+{
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_heap_sys, k_malloc, _SYSTEM_HEAP);
+
+	void *ret = k_aligned_alloc(sizeof(void *), size);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_heap_sys, k_malloc, _SYSTEM_HEAP, ret);
+
+	return ret;
 }
 
 void *k_calloc(size_t nmemb, size_t size)
@@ -73,7 +102,13 @@ void *k_calloc(size_t nmemb, size_t size)
 	void *ret;
 	size_t bounds;
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_heap_sys, k_calloc, _SYSTEM_HEAP);
+
 	if (size_mul_overflow(nmemb, size, &bounds)) {
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_heap_sys, k_calloc, _SYSTEM_HEAP, NULL);
+
 		return NULL;
 	}
 
@@ -81,6 +116,10 @@ void *k_calloc(size_t nmemb, size_t size)
 	if (ret != NULL) {
 		(void)memset(ret, 0, bounds);
 	}
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_heap_sys, k_calloc, _SYSTEM_HEAP, ret);
+
 	return ret;
 }
 
