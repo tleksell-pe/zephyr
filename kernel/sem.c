@@ -200,6 +200,10 @@ void z_impl_k_sem_reset(struct k_sem *sem)
 		z_ready_thread(thread);
 	}
 	sem->count = 0;
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC(k_sem, reset, sem);
+
 	handle_poll_events(sem);
 
 	z_reschedule(&lock, key);

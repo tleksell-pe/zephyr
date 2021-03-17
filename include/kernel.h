@@ -5367,10 +5367,12 @@ __syscall void k_poll_signal_init(struct k_poll_signal *signal);
  */
 __syscall void k_poll_signal_reset(struct k_poll_signal *signal);
 
-static inline void z_impl_k_poll_signal_reset(struct k_poll_signal *signal)
+/* [TZ-TRACE]: Defined in poll.c to facilitate tracing. */
+/*static inline void z_impl_k_poll_signal_reset(struct k_poll_signal *signal)
 {
 	signal->signaled = 0U;
 }
+*/
 
 /**
  * @brief Fetch the signaled state and result value of a poll signal

@@ -54,6 +54,9 @@ void k_poll_event_init(struct k_poll_event *event, uint32_t type,
 	event->mode = mode;
 	event->unused = 0U;
 	event->obj = obj;
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC(k_poll_api, event_init, event);
 }
 
 /* must be called with interrupts locked */
@@ -261,6 +264,9 @@ int z_impl_k_poll(struct k_poll_event *events, int num_events,
 	__ASSERT(events != NULL, "NULL events\n");
 	__ASSERT(num_events >= 0, "<0 events\n");
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC_ENTER(k_poll_api, poll, events);
+
 	events_registered = register_events(events, num_events, poller,
 					    K_TIMEOUT_EQ(timeout, K_NO_WAIT));
 
@@ -274,6 +280,10 @@ int z_impl_k_poll(struct k_poll_event *events, int num_events,
 	if (!poller->is_polling) {
 		clear_event_registrations(events, events_registered, key);
 		k_spin_unlock(&lock, key);
+
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_FUNC_EXIT(k_poll_api, poll, events, 0);
+
 		return 0;
 	}
 
@@ -281,6 +291,10 @@ int z_impl_k_poll(struct k_poll_event *events, int num_events,
 
 	if (K_TIMEOUT_EQ(timeout, K_NO_WAIT)) {
 		k_spin_unlock(&lock, key);
+
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_FUNC_EXIT(k_poll_api, poll, events, -EAGAIN);
+
 		return -EAGAIN;
 	}
 
@@ -300,6 +314,9 @@ int z_impl_k_poll(struct k_poll_event *events, int num_events,
 	key = k_spin_lock(&lock);
 	clear_event_registrations(events, events_registered, key);
 	k_spin_unlock(&lock, key);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC_EXIT(k_poll_api, poll, events, swap_rc);
 
 	return swap_rc;
 }
@@ -421,6 +438,9 @@ void z_impl_k_poll_signal_init(struct k_poll_signal *signal)
 	signal->signaled = 0U;
 	/* signal->result is left unitialized */
 	z_object_init(signal);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC(k_poll_api, signal_init, signal);
 }
 
 #ifdef CONFIG_USERSPACE
@@ -432,11 +452,22 @@ static inline void z_vrfy_k_poll_signal_init(struct k_poll_signal *signal)
 #include <syscalls/k_poll_signal_init_mrsh.c>
 #endif
 
+void z_impl_k_poll_signal_reset(struct k_poll_signal *signal)
+{
+	signal->signaled = 0U;
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC(k_poll_api, signal_reset, signal);
+}
+
 void z_impl_k_poll_signal_check(struct k_poll_signal *signal,
 			       unsigned int *signaled, int *result)
 {
 	*signaled = signal->signaled;
 	*result = signal->result;
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC(k_poll_api, signal_check, signal);
 }
 
 #ifdef CONFIG_USERSPACE
@@ -462,10 +493,17 @@ int z_impl_k_poll_signal_raise(struct k_poll_signal *signal, int result)
 	poll_event = (struct k_poll_event *)sys_dlist_get(&signal->poll_events);
 	if (poll_event == NULL) {
 		k_spin_unlock(&lock, key);
+
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_FUNC(k_poll_api, signal_raise, signal, 0);
+
 		return 0;
 	}
 
 	int rc = signal_poll_event(poll_event, K_POLL_STATE_SIGNALED);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC(k_poll_api, signal_raise, signal, rc);
 
 	z_reschedule(&lock, key);
 	return rc;

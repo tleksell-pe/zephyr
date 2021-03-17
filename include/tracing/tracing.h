@@ -481,6 +481,64 @@
 
 
 /**
+ * @brief Poll Tracing APIs
+ * @defgroup poll_tracing_apis Poll Tracing APIs
+ * @ingroup tracing_apis
+ * @{
+ */
+
+/**
+ * @brief Trace initialisation of a Poll Event
+ * @param event Poll Event
+ */
+#define sys_port_trace_k_poll_api_event_init(event)
+
+/**
+ * @brief Trace Polling call start
+ * @param event Poll Event
+ */
+#define sys_port_trace_k_poll_api_poll_enter(events)
+
+/**
+ * @brief Trace Polling call outcome
+ * @param event Poll Event
+ * @param ret Return value
+ */
+#define sys_port_trace_k_poll_api_poll_exit(events, ret)
+
+/**
+ * @brief Trace initialisation of a Poll Signal
+ * @param signal Poll Signal
+ */
+#define sys_port_trace_k_poll_api_signal_init(signal)
+
+/**
+ * @brief Trace resetting of Poll Signal
+ * @param signal Poll Signal
+ */
+#define sys_port_trace_k_poll_api_signal_reset(signal)
+
+/**
+ * @brief Trace checking of Poll Signal
+ * @param signal Poll Signal
+ */
+#define sys_port_trace_k_poll_api_signal_check(signal)
+
+/**
+ * @brief Trace raising of Poll Signal
+ * @param signal Poll Signal
+ * @param ret Return value
+ */
+#define sys_port_trace_k_poll_api_signal_raise(signal, ret)
+
+/**
+ * @}
+ */ /* end of poll_tracing_apis */
+
+
+
+
+/**
  * @brief Semaphore Tracing APIs
  * @defgroup sem_tracing_apis Semaphore Tracing APIs
  * @ingroup tracing_apis
