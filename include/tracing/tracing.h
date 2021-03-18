@@ -931,9 +931,6 @@
 
 
 /**
- * @note Tracing hooks for FIFO are not yet implemented pending necessary changes
- * which plays nice with system calls and user mode.
- *
  * @brief FIFO Tracing APIs
  * @defgroup fifo_tracing_apis FIFO Tracing APIs
  * @ingroup tracing_apis
@@ -941,57 +938,97 @@
  */
 
 /**
- * @brief Trace initialization of FIFO
+ * @brief Trace initialization of FIFO Queue entry
  * @param fifo FIFO object
  */
-#define sys_port_trace_k_fifo_init(fifo)
+#define sys_port_trace_k_fifo_init_enter(fifo)
 
 /**
- * @brief Trace FIFO cancel wait
+ * @brief Trace initialization of FIFO Queue exit
  * @param fifo FIFO object
  */
-#define sys_port_trace_k_fifo_cancel_wait(fifo)
+#define sys_port_trace_k_fifo_init_exit(fifo)
 
 /**
- * @brief Trace FIFO put
+ * @brief Trace FIFO Queue cancel wait entry
  * @param fifo FIFO object
  */
-#define sys_port_trace_k_fifo_put(fifo)
+#define sys_port_trace_k_fifo_cancel_wait_enter(fifo)
 
 /**
- * @brief Trace FIFO alloc put entry
+ * @brief Trace FIFO Queue cancel wait exit
  * @param fifo FIFO object
  */
-#define sys_port_trace_k_fifo_alloc_put_enter(fifo)
+#define sys_port_trace_k_fifo_cancel_wait_exit(fifo)
 
 /**
- * @brief Trace FIFO alloc put exit
+ * @brief Trace FIFO Queue put entry
  * @param fifo FIFO object
+ * @param data Data item
+ */
+#define sys_port_trace_k_fifo_put_enter(fifo, data)
+
+/**
+ * @brief Trace FIFO Queue put exit
+ * @param fifo FIFO object
+ * @param data Data item
+ */
+#define sys_port_trace_k_fifo_put_exit(fifo, data)
+
+/**
+ * @brief Trace FIFO Queue alloc put entry
+ * @param fifo FIFO object
+ * @param data Data item
+ */
+#define sys_port_trace_k_fifo_alloc_put_enter(fifo, data)
+
+/**
+ * @brief Trace FIFO Queue alloc put exit
+ * @param fifo FIFO object
+ * @param data Data item
  * @param ret Return value
  */
-#define sys_port_trace_k_fifo_alloc_put_exit(fifo, ret)
+#define sys_port_trace_k_fifo_alloc_put_exit(fifo, data, ret)
 
 /**
- * @brief Trace FIFO put list
+ * @brief Trace FIFO Queue put list entry
  * @param fifo FIFO object
+ * @param head First ll-node
+ * @param tail Last ll-node
  */
-#define sys_port_trace_k_fifo_put_list(fifo)
+#define sys_port_trace_k_fifo_alloc_put_list_enter(fifo, head, tail)
 
 /**
- * @brief Trace FIFO put slist
+ * @brief Trace FIFO Queue put list exit
  * @param fifo FIFO object
+ * @param head First ll-node
+ * @param tail Last ll-node
  */
-#define sys_port_trace_k_fifo_put_slist(fifo)
+#define sys_port_trace_k_fifo_alloc_put_list_exit(fifo, head, tail)
 
 /**
- * @brief Trace FIFO get attempt start
+ * @brief Trace FIFO Queue put slist entry
+ * @param fifo FIFO object
+ * @param list Syslist object
+ */
+#define sys_port_trace_k_fifo_alloc_put_slist_enter(fifo, list)
+
+/**
+ * @brief Trace FIFO Queue put slist exit
+ * @param fifo FIFO object
+ * @param list Syslist object
+ */
+#define sys_port_trace_k_fifo_alloc_put_slist_exit(fifo, list)
+
+/**
+ * @brief Trace FIFO Queue get entry
  * @param fifo FIFO object
  * @param timeout Timeout period
  */
 #define sys_port_trace_k_fifo_get_enter(fifo, timeout)
 
 /**
- * @brief Trace FIFO get attempt outcome
+ * @brief Trace FIFO Queue get exit
  * @param fifo FIFO object
  * @param timeout Timeout period
  * @param ret Return value
@@ -999,18 +1036,30 @@
 #define sys_port_trace_k_fifo_get_exit(fifo, timeout, ret)
 
 /**
- * @brief Trace FIFO peek head
+ * @brief Trace FIFO Queue peek head entry
  * @param fifo FIFO object
- * @param ret Return value
  */
-#define sys_port_trace_k_fifo_peek_head(fifo, ret)
+#define sys_port_trace_k_fifo_peek_head_entry(fifo)
 
 /**
- * @brief Trace FIFO peek tail
+ * @brief Trace FIFO Queue peek head exit
  * @param fifo FIFO object
  * @param ret Return value
  */
-#define sys_port_trace_k_fifo_peek_tail(fifo, ret)
+#define sys_port_trace_k_fifo_peek_head_exit(fifo, ret)
+
+/**
+ * @brief Trace FIFO Queue peek tail entry
+ * @param fifo FIFO object
+ */
+#define sys_port_trace_k_fifo_peek_tail_entry(fifo)
+
+/**
+ * @brief Trace FIFO Queue peek tail exit
+ * @param fifo FIFO object
+ * @param ret Return value
+ */
+#define sys_port_trace_k_fifo_peek_tail_exit(fifo, ret)
 
 /**
  * @}
@@ -1020,49 +1069,62 @@
 
 
 /**
- * @note Tracing hooks for LIFO are not yet implemented pending necessary changes
- * which plays nice with system calls and user mode.
- *
  * @brief LIFO Tracing APIs
- * @defgroup lifo_tracing_apis Mutex Tracing APIs
+ * @defgroup lifo_tracing_apis LIFO Tracing APIs
  * @ingroup tracing_apis
  * @{
  */
 
 /**
- * @brief Trace initialization of LIFO
- * @param fifo LIFO object
- */
-#define sys_port_trace_k_lifo_init(lifo)
-
-/**
- * @brief Trace LIFO put
+ * @brief Trace initialization of LIFO Queue entry
  * @param lifo LIFO object
  */
-#define sys_port_trace_k_lifo_put(lifo)
+#define sys_port_trace_k_lifo_init_enter(lifo)
 
 /**
- * @brief Trace LIFO alloc put entry
+ * @brief Trace initialization of LIFO Queue exit
  * @param lifo LIFO object
  */
-#define sys_port_trace_k_lifo_alloc_put_enter(lifo)
+#define sys_port_trace_k_lifo_init_exit(lifo)
 
 /**
- * @brief Trace LIFO alloc put exit
+ * @brief Trace LIFO Queue put entry
  * @param lifo LIFO object
+ * @param data Data item
+ */
+#define sys_port_trace_k_lifo_put_enter(lifo, data)
+
+/**
+ * @brief Trace LIFO Queue put exit
+ * @param lifo LIFO object
+ * @param data Data item
+ */
+#define sys_port_trace_k_lifo_put_exit(lifo, data)
+
+/**
+ * @brief Trace LIFO Queue alloc put entry
+ * @param lifo LIFO object
+ * @param data Data item
+ */
+#define sys_port_trace_k_lifo_alloc_put_enter(lifo, data)
+
+/**
+ * @brief Trace LIFO Queue alloc put exit
+ * @param lifo LIFO object
+ * @param data Data item
  * @param ret Return value
  */
-#define sys_port_trace_k_lifo_alloc_put_exit(lifo, ret)
+#define sys_port_trace_k_lifo_alloc_put_exit(lifo, data, ret)
 
 /**
- * @brief Trace LIFO get attempt start
+ * @brief Trace LIFO Queue get entry
  * @param lifo LIFO object
  * @param timeout Timeout period
  */
 #define sys_port_trace_k_lifo_get_enter(lifo, timeout)
 
 /**
- * @brief Trace LIFO get attempt outcome
+ * @brief Trace LIFO Queue get exit
  * @param lifo LIFO object
  * @param timeout Timeout period
  * @param ret Return value
