@@ -2088,7 +2088,11 @@ struct k_fifo {
  * @return N/A
  */
 #define k_fifo_init(fifo) \
-	k_queue_init(&(fifo)->_queue)
+	({ \
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_fifo, init, fifo); \
+	k_queue_init(&(fifo)->_queue); \
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_fifo, init, fifo); \
+	})
 
 /**
  * @brief Cancel waiting on a FIFO queue.
@@ -2104,7 +2108,11 @@ struct k_fifo {
  * @return N/A
  */
 #define k_fifo_cancel_wait(fifo) \
-	k_queue_cancel_wait(&(fifo)->_queue)
+	({ \
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_fifo, cancel_wait, fifo); \
+	k_queue_cancel_wait(&(fifo)->_queue); \
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_fifo, cancel_wait, fifo); \
+	})
 
 /**
  * @brief Add an element to a FIFO queue.
@@ -2121,7 +2129,11 @@ struct k_fifo {
  * @return N/A
  */
 #define k_fifo_put(fifo, data) \
-	k_queue_append(&(fifo)->_queue, data)
+	({ \
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_fifo, put, fifo, data); \
+	k_queue_append(&(fifo)->_queue, data); \
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_fifo, put, fifo, data); \
+	})
 
 /**
  * @brief Add an element to a FIFO queue.
@@ -2140,7 +2152,13 @@ struct k_fifo {
  * @retval -ENOMEM if there isn't sufficient RAM in the caller's resource pool
  */
 #define k_fifo_alloc_put(fifo, data) \
-	k_queue_alloc_append(&(fifo)->_queue, data)
+	({ \
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_fifo, alloc_put, fifo, data); \
+	int ret = k_queue_alloc_append(&(fifo)->_queue, data); \
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_fifo, alloc_put, fifo, data, ret); \
+	ret; \
+	})
+
 
 /**
  * @brief Atomically add a list of elements to a FIFO.
@@ -2159,7 +2177,11 @@ struct k_fifo {
  * @return N/A
  */
 #define k_fifo_put_list(fifo, head, tail) \
-	k_queue_append_list(&(fifo)->_queue, head, tail)
+	({ \
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_fifo, put_list, fifo, head, tail); \
+	k_queue_append_list(&(fifo)->_queue, head, tail); \
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_fifo, put_list, fifo, head, tail); \
+	})
 
 /**
  * @brief Atomically add a list of elements to a FIFO queue.
@@ -2177,7 +2199,11 @@ struct k_fifo {
  * @return N/A
  */
 #define k_fifo_put_slist(fifo, list) \
-	k_queue_merge_slist(&(fifo)->_queue, list)
+	({ \
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_fifo, put_slist, fifo, list); \
+	k_queue_merge_slist(&(fifo)->_queue, list); \
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_fifo, put_slist, fifo, list); \
+	})
 
 /**
  * @brief Get an element from a FIFO queue.
@@ -2195,7 +2221,12 @@ struct k_fifo {
  * without waiting, or waiting period timed out.
  */
 #define k_fifo_get(fifo, timeout) \
-	k_queue_get(&(fifo)->_queue, timeout)
+	({ \
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_fifo, get, fifo, timeout); \
+	void *ret = k_queue_get(&(fifo)->_queue, timeout); \
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_fifo, get, fifo, timeout, ret); \
+	ret; \
+	})
 
 /**
  * @brief Query a FIFO queue to see if it has data available.
@@ -2227,7 +2258,12 @@ struct k_fifo {
  * @return Head element, or NULL if the FIFO queue is empty.
  */
 #define k_fifo_peek_head(fifo) \
-	k_queue_peek_head(&(fifo)->_queue)
+	({ \
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_fifo, peek_head, fifo); \
+	void *ret = k_queue_peek_head(&(fifo)->_queue); \
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_fifo, peek_head, fifo, ret); \
+	ret; \
+	})
 
 /**
  * @brief Peek element at the tail of FIFO queue.
@@ -2241,7 +2277,12 @@ struct k_fifo {
  * @return Tail element, or NULL if a FIFO queue is empty.
  */
 #define k_fifo_peek_tail(fifo) \
-	k_queue_peek_tail(&(fifo)->_queue)
+	({ \
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_fifo, peek_tail, fifo); \
+	void *ret = k_queue_peek_tail(&(fifo)->_queue); \
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_fifo, peek_tail, fifo, ret); \
+	ret; \
+	})
 
 /**
  * @brief Statically define and initialize a FIFO queue.
@@ -2291,7 +2332,11 @@ struct k_lifo {
  * @return N/A
  */
 #define k_lifo_init(lifo) \
-	k_queue_init(&(lifo)->_queue)
+	({ \
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_lifo, init, lifo); \
+	k_queue_init(&(lifo)->_queue); \
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_lifo, init, lifo); \
+	})
 
 /**
  * @brief Add an element to a LIFO queue.
@@ -2308,7 +2353,11 @@ struct k_lifo {
  * @return N/A
  */
 #define k_lifo_put(lifo, data) \
-	k_queue_prepend(&(lifo)->_queue, data)
+	({ \
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_lifo, put, lifo, data); \
+	k_queue_prepend(&(lifo)->_queue, data); \
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_lifo, put, lifo, data); \
+	})
 
 /**
  * @brief Add an element to a LIFO queue.
@@ -2327,7 +2376,12 @@ struct k_lifo {
  * @retval -ENOMEM if there isn't sufficient RAM in the caller's resource pool
  */
 #define k_lifo_alloc_put(lifo, data) \
-	k_queue_alloc_prepend(&(lifo)->_queue, data)
+	({ \
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_lifo, alloc_put, lifo, data); \
+	int ret = k_queue_alloc_prepend(&(lifo)->_queue, data); \
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_lifo, alloc_put, lifo, data, ret); \
+	ret; \
+	})
 
 /**
  * @brief Get an element from a LIFO queue.
@@ -2345,7 +2399,12 @@ struct k_lifo {
  * without waiting, or waiting period timed out.
  */
 #define k_lifo_get(lifo, timeout) \
-	k_queue_get(&(lifo)->_queue, timeout)
+	({ \
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_lifo, get, lifo, timeout); \
+	void *ret = k_queue_get(&(lifo)->_queue, timeout); \
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_lifo, get, lifo, timeout, ret); \
+	ret; \
+	})
 
 /**
  * @brief Statically define and initialize a LIFO queue.
