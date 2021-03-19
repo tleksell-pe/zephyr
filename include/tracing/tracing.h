@@ -481,6 +481,161 @@
 
 
 /**
+ * @brief Work Tracing APIs
+ * @defgroup work_tracing_apis Work Tracing APIs
+ * @ingroup tracing_apis
+ * @{
+ */
+
+/**
+ * @brief Trace initialisation of a Work structure
+ * @param work Work structure
+ */
+#define sys_port_trace_k_work_init(work)
+
+/**
+ * @brief Trace submit work to work queue call entry
+ * @param queue Work queue structure
+ * @param work Work structure
+ */
+#define sys_port_trace_k_work_submit_to_queue_enter(queue, work)
+
+/**
+ * @brief Trace submit work to work queue call exit
+ * @param queue Work queue structure
+ * @param work Work structure
+ * @param ret Return value
+ */
+#define sys_port_trace_k_work_submit_to_queue_exit(queue, work, ret)
+
+/**
+ * @brief Trace submit work to system work queue call entry
+ * @param work Work structure
+ */
+#define sys_port_trace_k_work_submit_enter(work)
+
+/**
+ * @brief Trace submit work to system work queue call exit
+ * @param work Work structure
+ * @param ret Return value
+ */
+#define sys_port_trace_k_work_submit_exit(work, ret)
+
+/**
+ * @brief Trace flush work call entry
+ * @param work Work structure
+ */
+#define sys_port_trace_k_work_flush_enter(work)
+
+/**
+ * @brief Trace flush work call blocking
+ * @param work Work structure
+ * @param timeout Timeout period
+ */
+#define sys_port_trace_k_work_flush_blocking(work, timeout)
+
+/**
+ * @brief Trace flush work call exit
+ * @param work Work structure
+ * @param ret Return value
+ */
+#define sys_port_trace_k_work_flush_exit(work, ret)
+
+/**
+ * @brief Trace cancel work call entry
+ * @param work Work structure
+ */
+#define sys_port_trace_k_work_cancel_enter(work)
+
+/**
+ * @brief Trace cancel work call exit
+ * @param work Work structure
+ * @param ret Return value
+ */
+#define sys_port_trace_k_work_cancel_exit(work, ret)
+
+/**
+ * @brief Trace cancel sync work call entry
+ * @param work Work structure
+ * @param sync Sync object
+ */
+#define sys_port_trace_k_work_cancel_sync_enter(work, sync)
+
+/**
+ * @brief Trace cancel sync work call blocking
+ * @param work Work structure
+ * @param sync Sync object
+ */
+#define sys_port_trace_k_work_cancel_sync_blocking(work, sync)
+
+/**
+ * @brief Trace cancel sync work call exit
+ * @param work Work structure
+ * @param sync Sync object
+ * @param ret Return value
+ */
+#define sys_port_trace_k_work_cancel_sync_exit(work, sync, ret)
+
+/**
+ * @}
+ */ /* end of work_tracing_apis */
+
+
+
+
+/**
+ * @brief Work Queue Tracing APIs
+ * @defgroup work_q_tracing_apis Work Queue Tracing APIs
+ * @ingroup tracing_apis
+ * @{
+ */
+
+/**
+ * @brief Trace start of a Work Queue call entry
+ * @param queue Work Queue structure
+ */
+#define sys_port_trace_k_work_queue_start_enter(queue)
+
+/**
+ * @brief Trace start of a Work Queue call exit
+ * @param queue Work Queue structure
+ */
+#define sys_port_trace_k_work_queue_start_exit(queue)
+
+/**
+ * @brief Trace Work Queue drain call entry
+ * @param queue Work Queue structure
+ */
+#define sys_port_trace_k_work_queue_drain_enter(queue)
+
+/**
+ * @brief Trace Work Queue drain call exit
+ * @param queue Work Queue structure
+ * @param ret Return value
+ */
+#define sys_port_trace_k_work_queue_drain_exit(queue, ret)
+
+/**
+ * @brief Trace Work Queue unplug call entry
+ * @param queue Work Queue structure
+ */
+#define sys_port_trace_k_work_queue_unplug_enter(queue)
+
+/**
+ * @brief Trace Work Queue unplug call exit
+ * @param queue Work Queue structure
+ * @param ret Return value
+ */
+#define sys_port_trace_k_work_queue_unplug_exit(queue, ret)
+
+/**
+ * @}
+ */ /* end of work_q_tracing_apis */
+
+
+
+
+/**
  * @brief Poll Tracing APIs
  * @defgroup poll_tracing_apis Poll Tracing APIs
  * @ingroup tracing_apis

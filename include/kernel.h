@@ -3015,10 +3015,13 @@ int k_work_submit_to_queue(struct k_work_q *queue,
  *
  * @return as with k_work_submit_to_queue().
  */
-static inline int k_work_submit(struct k_work *work)
+/* [TZ-TRACE]: Defined in work.c to facilitate tracing. */
+int k_work_submit(struct k_work *work);
+/*static inline int k_work_submit(struct k_work *work)
 {
 	return k_work_submit_to_queue(&k_sys_work_q, work);
 }
+*/
 
 /** @brief Wait for last-submitted instance to complete.
  *

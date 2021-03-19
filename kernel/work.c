@@ -138,6 +138,9 @@ void k_work_init(struct k_work *work,
 	__ASSERT_NO_MSG(handler != 0);
 
 	*work = (struct k_work)Z_WORK_INITIALIZER(handler);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_INIT(k_work, work);
 }
 
 static inline int work_busy_get_locked(const struct k_work *work)
@@ -359,6 +362,10 @@ int k_work_submit_to_queue(struct k_work_q *queue,
 	__ASSERT_NO_MSG(work != NULL);
 
 	k_spinlock_key_t key = k_spin_lock(&lock);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_work, submit_to_queue, queue, work);
+
 	int ret = submit_to_queue_locked(work, &queue);
 
 	k_spin_unlock(&lock, key);
@@ -372,6 +379,24 @@ int k_work_submit_to_queue(struct k_work_q *queue,
 		k_yield();
 	}
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_work, submit_to_queue, queue, work, ret);
+
+	return ret;
+}
+
+/* [TZ-Trace]: Function moved here to facilitate tracing
+ * through the new tracing macros.
+ */
+int k_work_submit(struct k_work *work)
+{
+	/* [TZ-Trace]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_work, submit, work);
+
+	int ret = k_work_submit_to_queue(&k_sys_work_q, work);
+
+	/* [TZ-Trace]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_work, submit, work, ret);
 
 	return ret;
 }
@@ -420,6 +445,9 @@ bool k_work_flush(struct k_work *work,
 	__ASSERT_NO_MSG(arch_mem_coherent(sync));
 #endif
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_work, flush, work);
+
 	struct z_work_flusher *flusher = &sync->flusher;
 	k_spinlock_key_t key = k_spin_lock(&lock);
 
@@ -429,8 +457,14 @@ bool k_work_flush(struct k_work *work,
 
 	/* If necessary wait until the flusher item completes */
 	if (need_flush) {
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_OBJ_FUNC_BLOCKING(k_work, flush, work, K_FOREVER);
+
 		k_sem_take(&flusher->sem, K_FOREVER);
 	}
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_work, flush, work, need_flush);
 
 	return need_flush;
 }
@@ -503,10 +537,16 @@ int k_work_cancel(struct k_work *work)
 	__ASSERT_NO_MSG(work != NULL);
 	__ASSERT_NO_MSG(!flag_test(&work->flags, K_WORK_DELAYABLE_BIT));
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_work, cancel, work);
+
 	k_spinlock_key_t key = k_spin_lock(&lock);
 	int ret = cancel_async_locked(work);
 
 	k_spin_unlock(&lock, key);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_work, cancel, work, ret);
 
 	return ret;
 }
@@ -522,6 +562,9 @@ bool k_work_cancel_sync(struct k_work *work,
 	__ASSERT_NO_MSG(arch_mem_coherent(sync));
 #endif
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_work, cancel_sync, work, sync);
+
 	struct z_work_canceller *canceller = &sync->canceller;
 	k_spinlock_key_t key = k_spin_lock(&lock);
 
@@ -532,8 +575,14 @@ bool k_work_cancel_sync(struct k_work *work,
 	k_spin_unlock(&lock, key);
 
 	if (need_wait) {
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_OBJ_FUNC_BLOCKING(k_work, cancel_sync, work, sync);
+
 		k_sem_take(&canceller->sem, K_FOREVER);
 	}
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_work, cancel_sync, work, sync, need_wait);
 
 	return need_wait;
 }
@@ -703,6 +752,9 @@ void k_work_queue_start(struct k_work_q *queue,
 	__ASSERT_NO_MSG(!flag_test(&queue->flags, K_WORK_QUEUE_STARTED_BIT));
 	uint32_t flags = K_WORK_QUEUE_STARTED;
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_work_queue, start, queue);
+
 	sys_slist_init(&queue->pending);
 	z_waitq_init(&queue->notifyq);
 	z_waitq_init(&queue->drainq);
@@ -726,6 +778,9 @@ void k_work_queue_start(struct k_work_q *queue,
 	}
 
 	k_thread_start(&queue->thread);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_work_queue, start, queue);
 }
 
 int k_work_queue_drain(struct k_work_q *queue,
@@ -733,6 +788,9 @@ int k_work_queue_drain(struct k_work_q *queue,
 {
 	__ASSERT_NO_MSG(queue);
 	__ASSERT_NO_MSG(!k_is_in_isr());
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_work_queue, drain, queue);
 
 	int ret = 0;
 	k_spinlock_key_t key = k_spin_lock(&lock);
@@ -753,12 +811,18 @@ int k_work_queue_drain(struct k_work_q *queue,
 		k_spin_unlock(&lock, key);
 	}
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_work_queue, drain, queue, ret);
+
 	return ret;
 }
 
 int k_work_queue_unplug(struct k_work_q *queue)
 {
 	__ASSERT_NO_MSG(queue);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_work_queue, unplug, queue);
 
 	int ret = -EALREADY;
 	k_spinlock_key_t key = k_spin_lock(&lock);
@@ -768,6 +832,9 @@ int k_work_queue_unplug(struct k_work_q *queue)
 	}
 
 	k_spin_unlock(&lock, key);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_work_queue, unplug, queue, ret);
 
 	return ret;
 }

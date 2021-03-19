@@ -234,6 +234,12 @@ menu "Tracing Configuration"
 	help
 	  Enable tracing Threads.
 
+	config TRACING_WORK
+	bool "Enable tracing Work"
+	default y
+	help
+	  Enable tracing Work and Work queue events
+
 	config TRACING_ISR
 	bool "Enable tracing ISRs"
 	default y

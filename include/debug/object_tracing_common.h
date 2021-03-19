@@ -117,8 +117,7 @@
 	while (false)
 
 
-/**
- * @note	Helper macros used by the extended tracing system
+/* Helper macros used by the extended tracing system
  */
 #define _SYS_PORT_TRACING_TYPE_MASK(type) \
 	sys_port_trace_type_mask_ ## type
@@ -142,14 +141,21 @@
 	sys_port_trace_ ## name ## _ ## func ## _exit
 
 
-/**
- * @note Object trace macros part of the system for checking if certain
+/* Object trace macros part of the system for checking if certain
  * objects should be traced or not depending on the tracing configuration.
  */
 #if defined(CONFIG_TRACING_THREAD)
 	#define sys_port_trace_type_mask_k_thread(trace_call) trace_call
 #else
 	#define sys_port_trace_type_mask_k_thread(trace_call)
+#endif
+
+#if defined(CONFIG_TRACING_WORK)
+	#define sys_port_trace_type_mask_k_work(trace_call) trace_call
+	#define sys_port_trace_type_mask_k_work_queue(trace_call) trace_call
+#else
+	#define sys_port_trace_type_mask_k_work(trace_call)
+	#define sys_port_trace_type_mask_k_work_queue(trace_call)
 #endif
 
 #if defined(CONFIG_TRACING_SEMAPHORE)
