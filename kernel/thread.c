@@ -878,6 +878,16 @@ FUNC_NORETURN void k_thread_user_mode_enter(k_thread_entry_t entry,
 #endif
 }
 
+/* [TZ-TRACE]: Moved from kernel.h to facilitate tracing */
+void k_thread_heap_assign(struct k_thread *thread,
+					struct k_heap *heap)
+{
+	thread->resource_pool = heap;
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC(k_thread, heap_assign, thread, heap);
+}
+
 /* These spinlock assertion predicates are defined here because having
  * them in spinlock.h is a giant header ordering headache.
  */

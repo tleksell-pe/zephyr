@@ -153,9 +153,13 @@
 #if defined(CONFIG_TRACING_WORK)
 	#define sys_port_trace_type_mask_k_work(trace_call) trace_call
 	#define sys_port_trace_type_mask_k_work_queue(trace_call) trace_call
+	#define sys_port_trace_type_mask_k_work_delayable(trace_call) trace_call
+	#define sys_port_trace_type_mask_k_work_poll(trace_call) trace_call
 #else
 	#define sys_port_trace_type_mask_k_work(trace_call)
 	#define sys_port_trace_type_mask_k_work_queue(trace_call)
+	#define sys_port_trace_type_mask_k_work_delayable(trace_call)
+	#define sys_port_trace_type_mask_k_work_poll(trace_call)
 #endif
 
 #if defined(CONFIG_TRACING_SEMAPHORE)

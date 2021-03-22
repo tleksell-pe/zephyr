@@ -491,7 +491,7 @@ static void ready_thread(struct k_thread *thread)
 	 */
 	if (!z_is_thread_queued(thread) && z_is_thread_ready(thread)) {
 		/* [TZ-TRACE]: New trace hook */
-		SYS_PORT_TRACING_OBJ_FUNC(k_thread, ready, thread);
+		SYS_PORT_TRACING_OBJ_FUNC(k_thread, sched_ready, thread);
 
 		sys_trace_thread_ready(thread);
 		queue_thread(&_kernel.ready_q.runq, thread);
@@ -534,6 +534,9 @@ void z_sched_start(struct k_thread *thread)
 
 void z_impl_k_thread_suspend(struct k_thread *thread)
 {
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_thread, suspend, thread);
+
 	(void)z_abort_thread_timeout(thread);
 
 	LOCKED(&sched_spinlock) {
@@ -547,6 +550,9 @@ void z_impl_k_thread_suspend(struct k_thread *thread)
 	if (thread == _current) {
 		z_reschedule_unlocked();
 	}
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_thread, suspend, thread);
 }
 
 #ifdef CONFIG_USERSPACE
@@ -560,6 +566,9 @@ static inline void z_vrfy_k_thread_suspend(struct k_thread *thread)
 
 void z_impl_k_thread_resume(struct k_thread *thread)
 {
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_thread, resume, thread);
+
 	k_spinlock_key_t key = k_spin_lock(&sched_spinlock);
 
 	/* Do not try to resume a thread that was not suspended */
@@ -572,6 +581,9 @@ void z_impl_k_thread_resume(struct k_thread *thread)
 	ready_thread(thread);
 
 	z_reschedule(&sched_spinlock, key);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_thread, resume, thread);
 }
 
 #ifdef CONFIG_USERSPACE
@@ -605,7 +617,7 @@ static void add_to_waitq_locked(struct k_thread *thread, _wait_q_t *wait_q)
 	z_mark_thread_as_pending(thread);
 
 	/* [TZ-TRACE]: New trace hook */
-	SYS_PORT_TRACING_OBJ_FUNC(k_thread, pend, thread);
+	SYS_PORT_TRACING_FUNC(k_thread, sched_pend, thread);
 
 	sys_trace_thread_pend(thread);
 
@@ -772,7 +784,7 @@ bool z_set_prio(struct k_thread *thread, int prio)
 	}
 
 	/* [TZ-TRACE]: New trace hook */
-	SYS_PORT_TRACING_OBJ_FUNC(k_thread, priority_set, thread);
+	SYS_PORT_TRACING_OBJ_FUNC(k_thread, sched_priority_set, thread, prio);
 
 	sys_trace_thread_priority_set(thread);
 
@@ -1344,6 +1356,22 @@ static inline int32_t z_vrfy_k_usleep(int us)
 #include <syscalls/k_usleep_mrsh.c>
 #endif
 
+/* [TZ-TRACE]: Moved from kernel.h to facilitate tracing, see warning
+ * information about tracing this call as it is noted in kernel.h.
+ */
+int32_t k_msleep(int32_t ms)
+{
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC_ENTER(k_thread, msleep, ms);
+
+	int32_t ret = k_sleep(Z_TIMEOUT_MS(ms));
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC_EXIT(k_thread, msleep, ms, ret);
+
+	return ret;
+}
+
 void z_impl_k_wakeup(k_tid_t thread)
 {
 	/* [TZ-TRACE]: New trace hook */
@@ -1511,7 +1539,7 @@ static void end_thread(struct k_thread *thread)
 		update_cache(1);
 
 		/* [TZ-TRACE]: New trace hook */
-		SYS_PORT_TRACING_OBJ_FUNC(k_thread, abort, thread);
+		SYS_PORT_TRACING_FUNC(k_thread, sched_abort, thread);
 
 		sys_trace_thread_abort(thread);
 		z_thread_monitor_exit(thread);
@@ -1576,7 +1604,13 @@ void z_thread_abort(struct k_thread *thread)
 #if !defined(CONFIG_ARCH_HAS_THREAD_ABORT)
 void z_impl_k_thread_abort(struct k_thread *thread)
 {
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_tread, abort, thread);
+
 	z_thread_abort(thread);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_tread, abort, thread);
 }
 #endif
 

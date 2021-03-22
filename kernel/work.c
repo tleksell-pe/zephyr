@@ -884,6 +884,9 @@ void k_work_init_delayable(struct k_work_delayable *dwork,
 	};
 	z_init_timeout(&dwork->timeout);
 	(void)work_timeout;
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_INIT(k_work_delayable, dwork);
 }
 
 static inline int work_delayable_busy_get_locked(const struct k_work_delayable *dwork)
@@ -993,6 +996,9 @@ int k_work_schedule_for_queue(struct k_work_q *queue,
 {
 	__ASSERT_NO_MSG(dwork != NULL);
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_work, schedule_for_queue, queue, dwork, delay);
+
 	struct k_work *work = &dwork->work;
 	int ret = 0;
 	k_spinlock_key_t key = k_spin_lock(&lock);
@@ -1004,6 +1010,24 @@ int k_work_schedule_for_queue(struct k_work_q *queue,
 
 	k_spin_unlock(&lock, key);
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_work, schedule_for_queue, queue, dwork, delay, ret);
+
+	return ret;
+}
+
+/* [TZ-TRACE]: Moved from kernel.h to facilitate tracing. */
+int k_work_schedule(struct k_work_delayable *dwork,
+				   k_timeout_t delay)
+{
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_work, schedule, dwork, delay);
+
+	int ret = k_work_schedule_for_queue(&k_sys_work_q, dwork, delay);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_work, schedule, dwork, delay, ret);
+
 	return ret;
 }
 
@@ -1012,6 +1036,9 @@ int k_work_reschedule_for_queue(struct k_work_q *queue,
 				 k_timeout_t delay)
 {
 	__ASSERT_NO_MSG(dwork != NULL);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_work, reschedule_for_queue, queue, dwork, delay);
 
 	int ret = 0;
 	k_spinlock_key_t key = k_spin_lock(&lock);
@@ -1024,6 +1051,24 @@ int k_work_reschedule_for_queue(struct k_work_q *queue,
 
 	k_spin_unlock(&lock, key);
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_work, reschedule_for_queue, queue, dwork, delay, ret);
+
+	return ret;
+}
+
+/* [TZ-TRACE]: Moved from kernel.h to facilitate tracing. */
+int k_work_reschedule(struct k_work_delayable *dwork,
+				     k_timeout_t delay)
+{
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_work, reschedule, dwork, delay);
+
+	int ret = k_work_reschedule_for_queue(&k_sys_work_q, dwork, delay);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_work, reschedule, dwork, delay, ret);
+
 	return ret;
 }
 
@@ -1031,10 +1076,17 @@ int k_work_cancel_delayable(struct k_work_delayable *dwork)
 {
 	__ASSERT_NO_MSG(dwork != NULL);
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_work, cancel_delayable, dwork);
+
 	k_spinlock_key_t key = k_spin_lock(&lock);
 	int ret = cancel_delayable_async_locked(dwork);
 
 	k_spin_unlock(&lock, key);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_work, cancel_delayable, dwork, ret);
+
 	return ret;
 }
 
@@ -1047,6 +1099,9 @@ bool k_work_cancel_delayable_sync(struct k_work_delayable *dwork,
 #ifdef CONFIG_KERNEL_COHERENCE
 	__ASSERT_NO_MSG(arch_mem_coherent(sync));
 #endif
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_work, cancel_delayable_sync, dwork, sync);
 
 	struct z_work_canceller *canceller = &sync->canceller;
 	k_spinlock_key_t key = k_spin_lock(&lock);
@@ -1061,6 +1116,9 @@ bool k_work_cancel_delayable_sync(struct k_work_delayable *dwork,
 		k_sem_take(&canceller->sem, K_FOREVER);
 	}
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_work, cancel_delayable_sync, dwork, sync, need_wait);
+
 	return need_wait;
 }
 
@@ -1074,6 +1132,9 @@ bool k_work_flush_delayable(struct k_work_delayable *dwork,
 	__ASSERT_NO_MSG(arch_mem_coherent(sync));
 #endif
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_work, flush_delayable, dwork, sync);
+
 	struct k_work *work = &dwork->work;
 	struct z_work_flusher *flusher = &sync->flusher;
 	k_spinlock_key_t key = k_spin_lock(&lock);
@@ -1081,6 +1142,10 @@ bool k_work_flush_delayable(struct k_work_delayable *dwork,
 	/* If it's idle release the lock and return immediately. */
 	if (work_busy_get_locked(work) == 0U) {
 		k_spin_unlock(&lock, key);
+
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_work, flush_delayable, dwork, sync, false);
+
 		return false;
 	}
 
@@ -1102,6 +1167,9 @@ bool k_work_flush_delayable(struct k_work_delayable *dwork,
 	if (need_flush) {
 		k_sem_take(&flusher->sem, K_FOREVER);
 	}
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_work, flush_delayable, dwork, sync, need_flush);
 
 	return need_flush;
 }

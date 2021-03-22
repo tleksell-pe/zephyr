@@ -372,11 +372,13 @@ extern FUNC_NORETURN void k_thread_user_mode_enter(k_thread_entry_t entry,
  * @param heap Heap object to use for resources,
  *             or NULL if the thread should no longer have a memory pool.
  */
-static inline void k_thread_heap_assign(struct k_thread *thread,
-					struct k_heap *heap)
-{
+/* [TZ-TRACE]: Defined in thread.c to facilitate tracing */
+void k_thread_heap_assign(struct k_thread *thread,
+					struct k_heap *heap);
+/*{
 	thread->resource_pool = heap;
 }
+*/
 
 #if defined(CONFIG_INIT_STACKS) && defined(CONFIG_THREAD_STACK_INFO)
 /**
@@ -465,10 +467,16 @@ __syscall int32_t k_sleep(k_timeout_t timeout);
  * @return Zero if the requested time has elapsed or the number of milliseconds
  * left to sleep, if thread was woken up by \ref k_wakeup call.
  */
-static inline int32_t k_msleep(int32_t ms)
+/* [TZ-TRACE]: Defined in sched.c to facilitate tracing. This trace change requires
+ * a decision on how it should be implemented since the tracing macros will cause
+ * problems if this is called from a User Mode thread.
+ */
+int32_t k_msleep(int32_t ms);
+/*static inline int32_t k_msleep(int32_t ms)
 {
 	return k_sleep(Z_TIMEOUT_MS(ms));
 }
+*/
 
 /**
  * @brief Put the current thread to sleep with microsecond resolution.
@@ -3304,11 +3312,15 @@ int k_work_schedule_for_queue(struct k_work_q *queue,
  *
  * @return as with k_work_schedule_for_queue().
  */
-static inline int k_work_schedule(struct k_work_delayable *dwork,
+/* [TZ-TRACE]: Defined in work.c to facilitate tracing. */
+int k_work_schedule(struct k_work_delayable *dwork,
+				   k_timeout_t delay);
+/*static inline int k_work_schedule(struct k_work_delayable *dwork,
 				   k_timeout_t delay)
 {
 	return k_work_schedule_for_queue(&k_sys_work_q, dwork, delay);
 }
+*/
 
 /** @brief Reschedule a work item to a queue after a delay.
  *
@@ -3355,11 +3367,15 @@ int k_work_reschedule_for_queue(struct k_work_q *queue,
  *
  * @return as with k_work_reschedule_for_queue().
  */
-static inline int k_work_reschedule(struct k_work_delayable *dwork,
+/* [TZ-TRACE]: Defined in work.c to facilitate tracing. */
+int k_work_reschedule(struct k_work_delayable *dwork,
+				     k_timeout_t delay);
+/*static inline int k_work_reschedule(struct k_work_delayable *dwork,
 				     k_timeout_t delay)
 {
 	return k_work_reschedule_for_queue(&k_sys_work_q, dwork, delay);
 }
+*/
 
 /** @brief Flush delayable work.
  *
@@ -3902,7 +3918,12 @@ struct k_work_user {
  * @param work_handler Function to invoke each time work item is processed.
  */
 #define K_WORK_USER_DEFINE(work, work_handler) \
-	struct k_work_user work = Z_WORK_USER_INITIALIZER(work_handler)
+	({ \
+	struct k_work_user work = Z_WORK_USER_INITIALIZER(work_handler); \
+	SYS_PORT_TRACING_OBJ_INIT(k_user_work, work); \
+	work; \
+	})
+
 
 /**
  * @brief Initialize a userspace work item.
@@ -4146,7 +4167,12 @@ extern int k_work_poll_submit_to_queue(struct k_work_q *work_q,
  * @retval -EINVAL Work item is being processed or has completed its work.
  * @retval -EADDRINUSE Work item is pending on a different workqueue.
  */
-static inline int k_work_poll_submit(struct k_work_poll *work,
+/* [TZ-TRACE]: Moved into poll.c to facilitate tracing */
+int k_work_poll_submit(struct k_work_poll *work,
+				     struct k_poll_event *events,
+				     int num_events,
+				     k_timeout_t timeout);
+/*static inline int k_work_poll_submit(struct k_work_poll *work,
 				     struct k_poll_event *events,
 				     int num_events,
 				     k_timeout_t timeout)
@@ -4154,6 +4180,7 @@ static inline int k_work_poll_submit(struct k_work_poll *work,
 	return k_work_poll_submit_to_queue(&k_sys_work_q, work,
 					   events, num_events, timeout);
 }
+*/
 
 /**
  * @brief Cancel a triggered work item.

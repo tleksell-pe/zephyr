@@ -474,6 +474,49 @@
 #define sys_port_trace_k_thread_info(thread)
 
 /**
+ * @brief Trace implicit thread wakup invocation by the scheduler
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_sched_wakeup(thread)
+
+/**
+ * @brief Trace implicit thread abort invocation by the scheduler
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_sched_abort(thread)
+
+/**
+ * @brief Trace implicit thread set priority invocation by the scheduler
+ * @param thread Thread object
+ * @param prio Thread priority
+ */
+#define sys_port_trace_k_thread_sched_priority_set(thread, prio)
+
+/**
+ * @brief Trace implicit thread ready invocation by the scheduler
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_sched_ready(thread)
+
+/**
+ * @brief Trace implicit thread pend invocation by the scheduler
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_sched_pend(thread)
+
+/**
+ * @brief Trace implicit thread resume invocation by the scheduler
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_sched_resume(thread)
+
+/**
+ * @brief Trace implicit thread suspend invocation by the scheduler
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_sched_suspend(thread)
+
+/**
  * @}
  */ /* end of thread_tracing_apis */
 
@@ -631,6 +674,214 @@
 /**
  * @}
  */ /* end of work_q_tracing_apis */
+
+
+
+
+/**
+ * @brief Work Delayable Tracing APIs
+ * @defgroup work_delayable_tracing_apis Work Delayable Tracing APIs
+ * @ingroup tracing_apis
+ * @{
+ */
+
+/**
+ * @brief Trace initialisation of a Delayable Work structure
+ * @param dwork Delayable Work structure
+ */
+#define sys_port_trace_k_work_delayable_init(dwork)
+
+/**
+ * @brief Trace schedule delayable work for queue enter
+ * @param queue Work Queue structure
+ * @param dwork Delayable Work structure
+ * @param delay Delay period
+ */
+#define sys_port_trace_k_work_schedule_for_queue_enter(queue, dwork, delay)
+
+/**
+ * @brief Trace schedule delayable work for queue exit
+ * @param queue Work Queue structure
+ * @param dwork Delayable Work structure
+ * @param delay Delay period
+ * @param ret Return value
+ */
+#define sys_port_trace_k_work_schedule_for_queue_exit(queue, dwork, delay, ret)
+
+/**
+ * @brief Trace schedule delayable work for system work queue enter
+ * @param dwork Delayable Work structure
+ * @param delay Delay period
+ */
+#define sys_port_trace_k_work_schedule_enter(dwork, delay)
+
+/**
+ * @brief Trace schedule delayable work for system work queue exit
+ * @param dwork Delayable Work structure
+ * @param delay Delay period
+ * @param ret Return value
+ */
+#define sys_port_trace_k_work_schedule_exit(dwork, delay, ret)
+
+/**
+ * @brief Trace reschedule delayable work for queue enter
+ * @param queue Work Queue structure
+ * @param dwork Delayable Work structure
+ * @param delay Delay period
+ */
+#define sys_port_trace_k_work_reschedule_for_queue_enter(queue, dwork, delay)
+
+/**
+ * @brief Trace reschedule delayable work for queue exit
+ * @param queue Work Queue structure
+ * @param dwork Delayable Work structure
+ * @param delay Delay period
+ * @param ret Return value
+ */
+#define sys_port_trace_k_work_reschedule_for_queue_exit(queue, dwork, delay, ret)
+
+/**
+ * @brief Trace reschedule delayable work for system queue enter
+ * @param queue Work Queue structure
+ * @param dwork Delayable Work structure
+ * @param delay Delay period
+ */
+#define sys_port_trace_k_work_reschedule_enter(dwork, delay)
+
+/**
+ * @brief Trace reschedule delayable work for system queue exit
+ * @param queue Work Queue structure
+ * @param dwork Delayable Work structure
+ * @param delay Delay period
+ * @param ret Return value
+ */
+#define sys_port_trace_k_work_reschedule_exit(dwork, delay, ret)
+
+/**
+ * @brief Trace delayable work flush enter
+ * @param dwork Delayable Work structure
+ * @param sync Sync object
+ */
+#define sys_port_trace_k_work_flush_delayable_enter(dwork, sync)
+
+/**
+ * @brief Trace delayable work flush exit
+ * @param dwork Delayable Work structure
+ * @param sync Sync object
+ * @param ret Return value
+ */
+#define sys_port_trace_k_work_flush_delayable_exit(dwork, sync, ret)
+
+/**
+ * @brief Trace delayable work cancel enter
+ * @param dwork Delayable Work structure
+ */
+#define sys_port_trace_k_work_cancel_delayable_enter(dwork)
+
+/**
+ * @brief Trace delayable work cancel enter
+ * @param dwork Delayable Work structure
+ * @param ret Return value
+ */
+#define sys_port_trace_k_work_cancel_delayable_exit(dwork, ret)
+
+/**
+ * @brief Trace delayable work cancel sync enter
+ * @param dwork Delayable Work structure
+ * @param sync Sync object
+ */
+#define sys_port_trace_k_work_cancel_delayable_sync_enter(dwork, sync)
+
+/**
+ * @brief Trace delayable work cancel sync enter
+ * @param dwork Delayable Work structure
+ * @param sync Sync object
+ * @param ret Return value
+ */
+#define sys_port_trace_k_work_cancel_delayable_sync_exit(dwork, sync, ret)
+
+/**
+ * @}
+ */ /* end of work_delayable_tracing_apis */
+
+
+
+
+/**
+ * @brief Work Poll Tracing APIs
+ * @defgroup work_poll_tracing_apis Work Poll Tracing APIs
+ * @ingroup tracing_apis
+ * @{
+ */
+
+/**
+ * @brief Trace initialisation of a Work Poll structure enter
+ * @param work Work structure
+ */
+#define sys_port_trace_k_work_poll_init_enter(work)
+
+/**
+ * @brief Trace initialisation of a Work Poll structure exit
+ * @param work Work structure
+ */
+#define sys_port_trace_k_work_poll_init_exit(work)
+
+/**
+ * @brief Trace work poll submit to queue enter
+ * @param work_q Work queue
+ * @param work Work structure
+ * @param timeout Timeout period
+ */
+#define sys_port_trace_k_work_poll_submit_to_queue_enter(work_q, work, timeout)
+
+/**
+ * @brief Trace work poll submit to queue blocking
+ * @param work_q Work queue
+ * @param work Work structure
+ * @param timeout Timeout period
+ */
+#define sys_port_trace_k_work_poll_submit_to_queue_blocking(work_q, work, timeout)
+
+/**
+ * @brief Trace work poll submit to queue exit
+ * @param work_q Work queue
+ * @param work Work structure
+ * @param timeout Timeout period
+ * @param ret Return value
+ */
+#define sys_port_trace_k_work_poll_submit_to_queue_exit(work_q, work, timeout, ret)
+
+/**
+ * @brief Trace work poll submit to system queue enter
+ * @param work Work structure
+ * @param timeout Timeout period
+ */
+#define sys_port_trace_k_work_poll_submit_enter(work, timeout)
+
+/**
+ * @brief Trace work poll submit to system queue exit
+ * @param work Work structure
+ * @param timeout Timeout period
+ * @param ret Return value
+ */
+#define sys_port_trace_k_work_poll_submit_exit(work, timeout, ret)
+
+/**
+ * @brief Trace work poll cancel enter
+ * @param work Work structure
+ */
+#define sys_port_trace_k_work_poll_cancel_enter(work)
+
+/**
+ * @brief Trace work poll cancel exit
+ * @param work Work structure
+ * @param ret Return value
+ */
+#define sys_port_trace_k_work_poll_cancel_exit(work, ret)
+
+/**
+ * @}
+ */ /* end of work_poll_tracing_apis */
 
 
 

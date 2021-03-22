@@ -610,10 +610,16 @@ static int triggered_work_cancel(struct k_work_poll *work,
 void k_work_poll_init(struct k_work_poll *work,
 		      k_work_handler_t handler)
 {
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_ENTER(k_work_poll, init, work);
+
 	*work = (struct k_work_poll) {};
 	k_work_init(&work->work, triggered_work_handler);
 	work->real_handler = handler;
 	z_init_timeout(&work->timeout);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_OBJ_FUNC_EXIT(k_work_poll, init, work);
 }
 
 int k_work_poll_submit_to_queue(struct k_work_q *work_q,
@@ -630,6 +636,9 @@ int k_work_poll_submit_to_queue(struct k_work_q *work_q,
 	__ASSERT(events != NULL, "NULL events\n");
 	__ASSERT(num_events > 0, "zero events\n");
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC_ENTER(k_work_poll, submit_to_queue, work_q, work, timeout);
+
 	/* Take overship of the work if it is possible. */
 	key = k_spin_lock(&lock);
 	if (work->workq != NULL) {
@@ -639,10 +648,20 @@ int k_work_poll_submit_to_queue(struct k_work_q *work_q,
 			retval = triggered_work_cancel(work, key);
 			if (retval < 0) {
 				k_spin_unlock(&lock, key);
+
+				/* [TZ-TRACE]: New trace hook */
+				SYS_PORT_TRACING_FUNC_EXIT(k_work_poll, submit_to_queue, work_q,
+					work, timeout, retval);
+
 				return retval;
 			}
 		} else {
 			k_spin_unlock(&lock, key);
+
+			/* [TZ-TRACE]: New trace hook */
+			SYS_PORT_TRACING_FUNC_EXIT(k_work_poll, submit_to_queue, work_q,
+				work, timeout, -EADDRINUSE);
+
 			return -EADDRINUSE;
 		}
 	}
@@ -683,6 +702,10 @@ int k_work_poll_submit_to_queue(struct k_work_q *work_q,
 		/* From now, any event will result in submitted work. */
 		work->poller.mode = MODE_TRIGGERED;
 		k_spin_unlock(&lock, key);
+
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_FUNC_EXIT(k_work_poll, submit_to_queue, work_q, work, timeout, 0);
+
 		return 0;
 	}
 
@@ -711,7 +734,28 @@ int k_work_poll_submit_to_queue(struct k_work_q *work_q,
 	/* Submit work. */
 	k_work_submit_to_queue(work_q, &work->work);
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC_EXIT(k_work_poll, submit_to_queue, work_q, work, timeout, 0);
+
 	return 0;
+}
+
+/* [TZ-TRACE]: Moved from kernel.h to facilitate tracing */
+int k_work_poll_submit(struct k_work_poll *work,
+				     struct k_poll_event *events,
+				     int num_events,
+				     k_timeout_t timeout)
+{
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC_ENTER(k_work_poll, submit, work, timeout);
+
+	int ret = k_work_poll_submit_to_queue(&k_sys_work_q, work,
+								events, num_events, timeout);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC_EXIT(k_work_poll, submit, work, timeout, ret);
+
+	return ret;
 }
 
 int k_work_poll_cancel(struct k_work_poll *work)
@@ -719,14 +763,23 @@ int k_work_poll_cancel(struct k_work_poll *work)
 	k_spinlock_key_t key;
 	int retval;
 
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC_ENTER(k_work_poll, cancel, work);
+
 	/* Check if the work was submitted. */
 	if (work == NULL || work->workq == NULL) {
+		/* [TZ-TRACE]: New trace hook */
+		SYS_PORT_TRACING_FUNC_EXIT(k_work_poll, cancel, work, -EINVAL);
+
 		return -EINVAL;
 	}
 
 	key = k_spin_lock(&lock);
 	retval = triggered_work_cancel(work, key);
 	k_spin_unlock(&lock, key);
+
+	/* [TZ-TRACE]: New trace hook */
+	SYS_PORT_TRACING_FUNC_EXIT(k_work_poll, cancel, work, retval);
 
 	return retval;
 }
