@@ -244,6 +244,60 @@
  */ /* end of sem_tracing_apis */
 
 
+
+
+/**
+ * @brief Mutex Tracing APIs
+ * @defgroup mutex_tracing_apis Mutex Tracing APIs
+ * @ingroup tracing_apis
+ * @{
+ */
+
+/**
+ * @brief Trace initialization of Mutex
+ * @param mutex Mutex object
+ * @param ret Return value
+ */
+#define sys_port_trace_k_mutex_init(mutex, ret)
+
+/**
+ * @brief Trace Mutex lock attempt start
+ * @param mutex Mutex object
+ * @param timeout Timeout period
+ */
+#define sys_port_trace_k_mutex_lock_enter(mutex, timeout)
+
+/**
+ * @brief Trace Mutex lock attempt blocking
+ * @param mutex Mutex object
+ * @param timeout Timeout period
+ */
+#define sys_port_trace_k_mutex_lock_blocking(mutex, timeout)
+
+/**
+ * @brief Trace Mutex lock attempt outcome
+ * @param mutex Mutex object
+ * @param timeout Timeout period
+ * @param ret Return value
+ */
+#define sys_port_trace_k_mutex_lock_exit(mutex, timeout, ret)
+
+/**
+ * @brief Trace Mutex unlock entry
+ * @param mutex Mutex object
+ */
+#define sys_port_trace_k_mutex_unlock_enter(mutex)
+
+/**
+ * @brief Trace Mutex unlock exit
+ */
+#define sys_port_trace_k_mutex_unlock_exit(mutex, ret)
+
+/**
+ * @}
+ */ /* end of mutex_tracing_apis */
+
+
 /**
  * @}
  */
