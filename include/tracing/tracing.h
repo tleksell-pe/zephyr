@@ -186,6 +186,253 @@
 
 
 /**
+ * @brief Thread Tracing APIs
+ * @defgroup thread_tracing_apis Thread Tracing APIs
+ * @ingroup tracing_apis
+ * @{
+ */
+
+/**
+ * @brief Called when entering a k_thread_foreach call
+ */
+#define sys_port_trace_k_thread_foreach_enter()
+
+/**
+ * @brief Called when exiting a k_thread_foreach call
+ */
+#define sys_port_trace_k_thread_foreach_exit()
+
+/**
+ * @brief Called when entering a k_thread_foreach_unlocked
+ */
+#define sys_port_trace_k_thread_foreach_unlocked_enter()
+
+/**
+ * @brief Called when exiting a k_thread_foreach_unlocked
+ */
+#define sys_port_trace_k_thread_foreach_unlocked_exit()
+
+/**
+ * @brief Trace creating a Thread
+ * @param new_thread Thread object
+ */
+#define sys_port_trace_k_thread_create(new_thread)
+
+/**
+ * @brief Trace Thread entering user mode
+ */
+#define sys_port_trace_k_thread_user_mode_enter()
+
+/**
+ * @brief Called when entering a k_thread_join
+ * @param thread Thread object
+ * @param timeout Timeout period
+ */
+#define sys_port_trace_k_thread_join_enter(thread, timeout)
+
+/**
+ * @brief Called when k_thread_join blocks
+ * @param thread Thread object
+ * @param timeout Timeout period
+ */
+#define sys_port_trace_k_thread_join_blocking(thread, timeout)
+
+/**
+ * @brief Called when exiting k_thread_join
+ * @param thread Thread object
+ * @param timeout Timeout period
+ * @param ret Return value
+ */
+#define sys_port_trace_k_thread_join_exit(thread, timeout, ret)
+
+/**
+ * @brief Called when entering k_thread_sleep
+ * @param timeout Timeout period
+ */
+#define sys_port_trace_k_thread_sleep_enter(timeout)
+
+/**
+ * @brief Called when exiting k_thread_sleep
+ * @param timeout Timeout period
+ * @param ret Return value
+ */
+#define sys_port_trace_k_thread_sleep_exit(timeout, ret)
+
+/**
+ * @brief Called when entering k_thread_msleep
+ * @param ms Duration in milliseconds
+ */
+#define sys_port_trace_k_thread_msleep_enter(ms)
+
+/**
+ * @brief Called when exiting k_thread_msleep
+ * @param ms Duration in milliseconds
+ * @param ret Return value
+ */
+#define sys_port_trace_k_thread_msleep_exit(ms, ret)
+
+/**
+ * @brief Called when entering k_thread_usleep
+ * @param us Duration in microseconds
+ */
+#define sys_port_trace_k_thread_usleep_enter(us)
+
+/**
+ * @brief Called when exiting k_thread_usleep
+ * @param us Duration in microseconds
+ * @param ret Return value
+ */
+#define sys_port_trace_k_thread_usleep_exit(us, ret)
+
+/**
+ * @brief Called when entering k_thread_busy_wait
+ * @param usec_to_wait Duration in microseconds
+ */
+#define sys_port_trace_k_thread_busy_wait_enter(usec_to_wait)
+
+/**
+ * @brief Called when exiting k_thread_busy_wait
+ * @param usec_to_wait Duration in microseconds
+ */
+#define sys_port_trace_k_thread_busy_wait_exit(usec_to_wait)
+
+/**
+ * @brief Called when a thread yields
+ */
+#define sys_port_trace_k_thread_yield()
+
+/**
+ * @brief Called when a thread wakes up
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_wakeup(thread)
+
+/**
+ * @brief Called when a thread is started
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_start(thread)
+
+/**
+ * @brief Called when a thread is being aborted
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_abort(thread)
+
+/**
+ * @brief Called when setting priority of a thread
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_priority_set(thread)
+
+/**
+ * @brief Called when a thread is being suspended
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_suspend(thread)
+
+/**
+ * @brief Called when a thread is being resumed from suspension
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_resume(thread)
+
+/**
+ * @brief Called when the thread scheduler is locked
+ */
+#define sys_port_trace_k_thread_sched_lock()
+
+/**
+ * @brief Called when the thread sceduler is unlocked
+ */
+#define sys_port_trace_k_thread_sched_unlock()
+
+/**
+ * @brief Called when a thread name is set
+ * @param thread Thread object
+ * @param ret Return value
+ */
+#define sys_port_trace_k_thread_name_set(thread, ret)
+
+/**
+ * @brief Called before a thread has been selected to run
+ */
+#define sys_port_trace_k_thread_switched_out()
+
+/**
+ * @brief Called after a thread has been selected to run
+ */
+#define sys_port_trace_k_thread_switched_in()
+
+/**
+ * @brief Called when a thread is ready to run
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_ready(thread)
+
+/**
+ * @brief Called when a thread is pending
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_pend(thread)
+
+/**
+ * @brief Provide information about specific thread
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_info(thread)
+
+/**
+ * @brief Trace implicit thread wakup invocation by the scheduler
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_sched_wakeup(thread)
+
+/**
+ * @brief Trace implicit thread abort invocation by the scheduler
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_sched_abort(thread)
+
+/**
+ * @brief Trace implicit thread set priority invocation by the scheduler
+ * @param thread Thread object
+ * @param prio Thread priority
+ */
+#define sys_port_trace_k_thread_sched_priority_set(thread, prio)
+
+/**
+ * @brief Trace implicit thread ready invocation by the scheduler
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_sched_ready(thread)
+
+/**
+ * @brief Trace implicit thread pend invocation by the scheduler
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_sched_pend(thread)
+
+/**
+ * @brief Trace implicit thread resume invocation by the scheduler
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_sched_resume(thread)
+
+/**
+ * @brief Trace implicit thread suspend invocation by the scheduler
+ * @param thread Thread object
+ */
+#define sys_port_trace_k_thread_sched_suspend(thread)
+
+/**
+ * @}
+ */ /* end of thread_tracing_apis */
+
+
+
+
+/**
  * @brief Semaphore Tracing APIs
  * @defgroup sem_tracing_apis Semaphore Tracing APIs
  * @ingroup tracing_apis
